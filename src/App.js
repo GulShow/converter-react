@@ -1,7 +1,23 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import './App.css';
 import Form from './Form/Form';
 
+const useFetch = (url) => {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    if (!url) return;
+    const fetchData = async () => {
+      const response = await fetch(url);
+      const data = await response.json();
+      setData(data);
+    };
+
+    fetchData();
+  }, [url]);
+
+  return {data};
+};
 
 function App() {
   const [value, setValue] = useState(0);
@@ -14,14 +30,12 @@ function App() {
   const toCurrencies = useMemo(() => {
     return currencies.filter((c) => c !== fromCurrency);
   }, [currencies, fromCurrency]);
+  const {data} = useFetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json')
   const convert = async (e) => {
     e.preventDefault();
-    const response = await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json');
-    const data = await response.json()
-    const result = await data
-    objOfCurrencies.USD = result[25]
-    objOfCurrencies.GBP = result[24]
-    objOfCurrencies.EUR = result[32]
+    objOfCurrencies.USD = data[25]
+    objOfCurrencies.GBP = data[24]
+    objOfCurrencies.EUR = data[32]
     setResult(+value / +objOfCurrencies[select.value].rate);
   };
   return (
